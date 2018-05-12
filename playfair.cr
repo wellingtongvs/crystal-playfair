@@ -7,17 +7,16 @@ module PlayfairCypher
     # sets up the playfair 5x5 matrix
     keyMatrix = keySetup(key)
 
-    # substitutes consecutive consonants with a special character (X)
-    if text.includes? "RR"
-      text = text.sub("RR", "RXR")
+    # substitutes equal consecutive letters with a special character (X) between them
+    specialCases = ("A".."Z").map { |c| c * 2 }
+    specialSubsts = ("A".."Z").map { |c| c + "X" + c }
+    specialCases.zip(specialSubsts).each do |specialCase, specialSubst|
+      text = text.sub(specialCase, specialSubst)
     end
-    if text.includes? "SS"
-      text = text.sub("SS", "SXS")
-    end
+    
     # in the playfair matrix, i = j
-    if text.includes? "J"
-      text = text.sub("J", "I")
-    end
+    text = text.sub("J", "I")
+    
     # if the text is odd-sized, add a special character at the end (X)
     if text.size.odd?
       text = text + "X"
