@@ -17,7 +17,7 @@ def readFile
     puts "Error: file not found"
     exit(1)
   else
-    file = file.chomp
+    file = file.chomp.tr("àáäâãèéëẽêìíïîĩòóöôõùúüûũñçÀÁÄÂÃÈÉËẼÊÌÍÏÎĨÒÓÖÔÕÙÚÜÛŨÑÇ", "aaaaaeeeeeiiiiiooooouuuuuncAAAAAEEEEEIIIIIOOOOOUUUUUNC")
   end
   return file
 end

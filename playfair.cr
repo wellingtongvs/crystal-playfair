@@ -2,7 +2,7 @@ module PlayfairCypher
   # encrypt function
   def self.encrypt(text, key)
     # transforms the text to uppercase
-    text = text.upcase
+    text = text.upcase.delete(' ').delete('\n')
 
     # sets up the playfair 5x5 matrix
     keyMatrix = keySetup(key)
@@ -11,16 +11,14 @@ module PlayfairCypher
     specialCases = ("A".."Z").map { |c| c * 2 }
     specialSubsts = ("A".."Z").map { |c| c + "X" + c }
     specialCases.zip(specialSubsts).each do |specialCase, specialSubst|
-      text = text.sub(specialCase, specialSubst)
+      text = text.gsub(specialCase, specialSubst)
     end
-    
+
     # in the playfair matrix, i = j
-    text = text.sub("J", "I")
-    
-    # if the text is odd-sized, add a special character at the end (X)
-    if text.size.odd?
-      text = text + "X"
-    end
+    text = text.gsub("J", "I")
+
+    # if the text is odd-sized, use a special character at the end (X)
+    text = text + "X"
 
     # initializing iteration variables
     cipher_text = ""
@@ -28,7 +26,9 @@ module PlayfairCypher
     counter = 0
 
     text.each_char do |x|
-      stack << x # add a character to the stack
+      if (x >= 'A') && (x <= 'Z')
+        stack << x # add a character to the stack
+      end
       # two characters are needed to index the matrix
       while (stack.size == 2) && counter < 2
         index = 0
@@ -80,9 +80,13 @@ module PlayfairCypher
   end
 
   def self.decrypt(text, key)
-    text = text.upcase
+    # transforms the text to uppercase
+    text = text.upcase.delete(' ').delete('\n')
+
+    # sets up the playfair 5x5 matrix
     keyMatrix = keySetup(key)
 
+    # sets up iteration variables
     decrypted_text = ""
     stack = [] of Char
     counter = 0
@@ -143,7 +147,7 @@ module PlayfairCypher
     keyMatrix = [] of Char
     if key
       # transforms the key to uppercase and substitutes all the ocurrences of Js for Is
-      key = key.chomp.upcase.sub("J", "I")
+      key = key.chomp.upcase.gsub("J", "I")
     else
       exit(1)
     end
@@ -156,7 +160,7 @@ module PlayfairCypher
     # fills out the rest of the positions with the remaining characters
     ('A'..'Z').each do |c|
       if !(keyMatrix.includes?(c))
-        if c.upcase == 'J'
+        if c == 'J'
           next
         end
         keyMatrix << c
