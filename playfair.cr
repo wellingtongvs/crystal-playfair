@@ -4,19 +4,18 @@ module PlayfairCypher
     # transforms the text to uppercase
     text = text.upcase.delete(' ').delete('\n')
 
-    # sets up the playfair 5x5 matrix
+    # sets up the playfair 8x8 matrix
     keyMatrix = keySetup(key)
+    
+    # substitutes equal consecutive characters with a special character (X) between them
 
-    # substitutes equal consecutive letters with a special character (X) between them
-    specialCases = ("A".."Z").map { |c| c * 2 }
-    specialSubsts = ("A".."Z").map { |c| c + "X" + c }
+    specialCases = (' '.ord..'_'.ord).map { |c| "#{c.chr}" * 2 }
+    specialSubsts = (' '.ord..'_'.ord).map { |c| "#{c.chr}X#{c.chr}" }
     specialCases.zip(specialSubsts).each do |specialCase, specialSubst|
-      text = text.gsub(specialCase, specialSubst)
+      # executes two times to ensure that the X character did not cause two equal characters to be consecutive (e.g. AAAA => AXAAXA => AXAXAX)
+      text = text.gsub(specialCase, specialSubst).gsub(specialCase, specialSubst)
     end
-
-    # in the playfair matrix, i = j
-    text = text.gsub("J", "I")
-
+    
     # if the text is odd-sized, use a special character at the end (X)
     text = text + "X"
 
@@ -26,7 +25,7 @@ module PlayfairCypher
     counter = 0
 
     text.each_char do |x|
-      if (x >= 'A') && (x <= 'Z')
+      if (x >= ' ') && (x <= '_')
         stack << x # add a character to the stack
       end
       # two characters are needed to index the matrix
@@ -38,19 +37,19 @@ module PlayfairCypher
         j = keyMatrix.index(stack[1])
         if (i)
           # calculates i indexing/control variables for different situations
-          iRow = i/5
-          iCol = i % 5
-          shiftRowI = ((i + 1) % 5) + iRow * 5
-          shiftColI = (i + 5) % 25
-          index = (i/5)*5
+          iRow = i/8
+          iCol = i % 8
+          shiftRowI = ((i + 1) % 8) + iRow * 8
+          shiftColI = (i + 8) % 64
+          index = (i/8)*8
         end
         if (j)
           # calculates j indexing/control variables for different situations
-          jRow = j/5
-          jCol = j % 5
-          shiftRowJ = ((j + 1) % 5) + jRow * 5
-          shiftColJ = (j + 5) % 25
-          index = index + (j % 5)
+          jRow = j/8
+          jCol = j % 8
+          shiftRowJ = ((j + 1) % 8) + jRow * 8
+          shiftColJ = (j + 8) % 64
+          index = index + (j % 8)
         end
         # if the current two characters of the text are on the same row in the matrix
         # shift them to the right (circular shift)
@@ -81,9 +80,9 @@ module PlayfairCypher
 
   def self.decrypt(text, key)
     # transforms the text to uppercase
-    text = text.upcase.delete(' ').delete('\n')
+    text = text.upcase.delete('\n')
 
-    # sets up the playfair 5x5 matrix
+    # sets up the playfair 8x8 matrix
     keyMatrix = keySetup(key)
 
     # sets up iteration variables
@@ -102,19 +101,19 @@ module PlayfairCypher
         j = keyMatrix.index(stack[1])
         if (i)
           # calculates i indexing/control variables for different situations
-          iRow = i/5
-          iCol = i % 5
-          shiftRowI = ((i - 1) % 5) + iRow * 5
-          shiftColI = (i - 5) % 25
-          index = (i/5)*5
+          iRow = i/8
+          iCol = i % 8
+          shiftRowI = ((i - 1) % 8) + iRow * 8
+          shiftColI = (i - 8) % 64
+          index = (i/8)*8
         end
         if (j)
           # calculates j indexing/control variables for different situations
-          jRow = j/5
-          jCol = j % 5
-          shiftRowJ = ((j - 1) % 5) + jRow * 5
-          shiftColJ = (j - 5) % 25
-          index = index + (j % 5)
+          jRow = j/8
+          jCol = j % 8
+          shiftRowJ = ((j - 1) % 8) + jRow * 8
+          shiftColJ = (j - 8) % 64
+          index = index + (j % 8)
         end
         # if the current two characters of the text are on the same row in the matrix
         # shift them to the left (circular shift)
@@ -146,8 +145,8 @@ module PlayfairCypher
   private def self.keySetup(key)
     keyMatrix = [] of Char
     if key
-      # transforms the key to uppercase and substitutes all the ocurrences of Js for Is
-      key = key.chomp.upcase.gsub("J", "I")
+      # transforms the key to uppercase
+      key = key.chomp.upcase
     else
       exit(1)
     end
@@ -158,11 +157,8 @@ module PlayfairCypher
       end
     end
     # fills out the rest of the positions with the remaining characters
-    ('A'..'Z').each do |c|
+    (' '..'_').each do |c|
       if !(keyMatrix.includes?(c))
-        if c == 'J'
-          next
-        end
         keyMatrix << c
       end
     end
