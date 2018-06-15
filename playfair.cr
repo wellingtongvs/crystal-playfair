@@ -1,4 +1,4 @@
-module PlayfairCypher
+module PlayfairCipher
   # encrypt function
   def self.encrypt(text, key)
     # transforms the text to uppercase

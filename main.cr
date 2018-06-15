@@ -43,9 +43,9 @@ def main
   key = gets
 
   if option == 1
-    text = PlayfairCypher.encrypt(input_text, key)
+    text = PlayfairCipher.encrypt(input_text, key)
   else
-    text = PlayfairCypher.decrypt(input_text, key)
+    text = PlayfairCipher.decrypt(input_text, key)
   end
 
   puts text
